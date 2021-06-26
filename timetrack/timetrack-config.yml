@@ -7,5 +7,6 @@ data:
   TYPEORM_USERNAME: "user"
   TYPEORM_DATABASE: "timetrack"
   TYPEORM_PORT: "3306"
+  TYPEORM_HOST: "timetrack-db"
   MYSQL_DATABASE: "timetrack"
   MYSQL_USER: "user"

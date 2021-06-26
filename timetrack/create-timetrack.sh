@@ -11,9 +11,6 @@ sudo ./update-timetrack-certs.sh
 echo "Creating timetrack configmap"
 sudo k3s kubectl apply -f timetrack-config.yml -n $NAMESPACE
 
-echo "Installing MariaDB"
-sudo k3s kubectl apply -f mariadb.yml -n $NAMESPACE
-
 echo "Generating MariaDB Root Password"
 TMP_PW=$(sudo mktemp)
 tr -dc 'A-Za-z0-9_#$!@\-' </dev/urandom | head -c 20 | sudo tee -a $TMP_PW
@@ -33,3 +30,6 @@ sudo k3s kubectl apply -f mariadb.yml -n $NAMESPACE
 
 echo "Deploying Timetrack Service"
 sudo k3s kubectl apply -f timetrack.yml -n $NAMESPACE
+
+echo "Services Deployed!"
+sudo k3s kubectl get pods -n $NAMESPACE

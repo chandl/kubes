@@ -47,10 +47,12 @@ spec:
         runAsUser: 1001
       initContainers:
       containers:
-        - name: "mariadb"
-          image: mariadb:bionic
+        - name: timetrack-db
+          image: ghcr.io/linuxserver/mariadb
           imagePullPolicy: "IfNotPresent"
           env:
+            - name: TZ
+              value: "Etc/UTC"
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -74,41 +76,9 @@ spec:
           ports:
             - name: timetrack-db
               containerPort: 3306
-          livenessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - |
-                  password_aux="${MYSQL_ROOT_PASSWORD:-}"
-                  if [ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]; then
-                      password_aux=$(cat $MYSQL_ROOT_PASSWORD_FILE)
-                  fi
-                  mysqladmin status -uroot -p$password_aux
-            initialDelaySeconds: 120
-            periodSeconds: 10
-            timeoutSeconds: 1
-            successThreshold: 1
-            failureThreshold: 3
-          readinessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - |
-                  password_aux="${MYSQL_ROOT_PASSWORD:-}"
-                  if [ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]; then
-                      password_aux=$(cat $MYSQL_ROOT_PASSWORD_FILE)
-                  fi
-                  mysqladmin status -uroot -p$password_aux
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 1
-            successThreshold: 1
-            failureThreshold: 3
           volumeMounts:
             - name: mariadb-volume
-              mountPath: /var/lib/mysql
+              mountPath: /config
       volumes:
         - name: mariadb-volume
           persistentVolumeClaim:

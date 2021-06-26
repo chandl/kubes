@@ -7,10 +7,9 @@ metadata:
 spec:
   ports:
     - port: 3306
+      protocol: TCP
   selector:
     app: timetrack-db
-    tier: db
-  clusterIP: None
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

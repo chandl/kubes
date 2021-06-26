@@ -1,0 +1,84 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nextcloud-storage
+spec:
+  capacity:
+    storage: 2000Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /hdd/nextcloud
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - pi02
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: nextcloud-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 2000Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud
+  labels:
+    app: nextcloud
+spec:
+  replicas: 1
+    spec:
+      containers:
+        - name: nextcloud
+          image: nextcloud
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /var/www/html
+      restartPolicy: Always
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: nextcloud-pvc
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: nextcloud-ingress
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+spec:
+  tls:
+  - hosts:
+    - nextcloud.lan.chandl.io
+    secretName: nextcloud-certs
+  rules:
+  - host: nextcloud.lan.chandl.io
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nextcloud
+          servicePort: 80

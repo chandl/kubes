@@ -48,6 +48,7 @@ metadata:
 spec:
   replicas: 1
     spec:
+      nodeName: pi02
       containers:
         - name: nextcloud
           image: nextcloud

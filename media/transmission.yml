@@ -1,0 +1,47 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transmission
+  labels:
+    run: transmission
+spec:
+  selector:
+    app: transmission
+  ports:
+    - protocol: TCP
+      port: 9091
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transmission
+  labels:
+    app: transmission
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transmission
+  template:
+    metadata:
+      labels:
+        app: transmission
+    spec:
+      containers:
+      - name: transmission
+        image: ghcr.io/linuxserver/transmission
+        ports:
+        - containerPort: 9091
+          protocol: TCP
+        volumeMounts:
+        - name: media-volume
+          mountPath: "/config"
+          subPath: "config/transmission"
+        - name: media-volume
+          mountPath: "/downloads"
+          subPath: "downloads/transmission"
+      volumes:
+      - name: media-volume
+        persistentVolumeClaim:
+            claimName: media-volume

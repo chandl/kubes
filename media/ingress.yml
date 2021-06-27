@@ -1,0 +1,35 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  namespace: "media"
+  name: "media-ingress"
+spec:
+  rules:
+  - host: "media.lan.chandl.io"
+    http:
+      paths:
+        - backend:
+            serviceName: "transmission"
+            servicePort: 9091
+          path: "/transmission"
+        - backend:
+            serviceName: "sonarr"
+            servicePort: 8989
+          path: "/sonarr"
+        - backend:
+            serviceName: "jackett"
+            servicePort: 9117
+          path: "/jackett"
+        - backend:
+            serviceName: "radarr"
+            servicePort: 7878
+          path: "/radarr"
+        - backend:
+            serviceName: "hydra"
+            servicePort: 5076
+          path: "/hydra"
+        - backend:
+            serviceName: "jellyfin"
+            servicePort: 8096
+          path: "/"

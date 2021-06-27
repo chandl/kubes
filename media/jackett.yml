@@ -1,0 +1,47 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jackett
+  labels:
+    run: jackett
+spec:
+  selector:
+    app: jackett
+  ports:
+    - protocol: TCP
+      port: 9117
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jackett
+  labels:
+    app: jackett
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jackett
+  template:
+    metadata:
+      labels:
+        app: jackett
+    spec:
+      containers:
+      - name: jackett
+        image: ghcr.io/linuxserver/jackett
+        ports:
+        - containerPort: 9117
+          protocol: TCP
+        volumeMounts:
+        - name: media-volume
+          mountPath: "/config"
+          subPath: "config/jackett"
+        - name: media-volume
+          mountPath: "/downloads"
+          subPath: "downloads/jackett"
+      volumes:
+      - name: media-volume
+        persistentVolumeClaim:
+            claimName: media-volume

@@ -1,5 +1,6 @@
-kind: StorageClass
+---
 apiVersion: storage.k8s.io/v1
+kind: StorageClass
 metadata:
   name: local-storage
 provisioner: kubernetes.io/no-provisioner
@@ -39,31 +40,6 @@ spec:
     requests:
       storage: 2000Gi
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nextcloud
-  labels:
-    app: nextcloud
-spec:
-  replicas: 1
-    spec:
-      nodeName: pi02
-      containers:
-        - name: nextcloud
-          image: nextcloud
-          ports:
-            - containerPort: 80
-              protocol: TCP
-          volumeMounts:
-            - name: data
-              mountPath: /var/www/html
-      restartPolicy: Always
-      volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: nextcloud-pvc
----
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
@@ -83,3 +59,45 @@ spec:
         backend:
           serviceName: nextcloud
           servicePort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nextcloud
+  labels:
+    run: nextcloud
+spec:
+  selector:
+    app: nextcloud
+  ports:
+    - protocol: TCP
+      port: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud 
+  labels:
+    app: nextcloud 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nextcloud 
+  template:
+    metadata:
+      labels:
+        app: nextcloud
+    spec:
+      volumes:
+      - name: nextcloud-storage
+        persistentVolumeClaim: 
+          claimName: nextcloud-pvc
+      containers:
+        - image: nextcloud:apache
+          name: nextcloud 
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: /var/www/html
+              name: nextcloud-storage

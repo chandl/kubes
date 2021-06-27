@@ -10,3 +10,7 @@ sudo ./update-nextcloud-certs.sh
 
 echo "Creating nextcloud"
 sudo k3s kubectl apply -f nextcloud.yml -n $NAMESPACE
+
+echo "Nextcloud created"
+sudo k3s kubectl get svc -n nextcloud
+sudo k3s kubectl get pods -n nextcloud

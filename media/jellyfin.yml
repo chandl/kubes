@@ -29,7 +29,6 @@ spec:
         app: jellyfin
     spec:
       nodeSelector:
-        disktype: ssd
         jellyfin: yes
       containers:
       - name: jellyfin

@@ -29,7 +29,7 @@ spec:
         app: jellyfin
     spec:
       nodeSelector:
-        jellyfin: yes
+        jellyfin: "valid"
       containers:
       - name: jellyfin
         image: ghcr.io/linuxserver/jellyfin

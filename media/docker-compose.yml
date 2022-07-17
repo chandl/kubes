@@ -2,31 +2,29 @@
 version: "2.1"
 services:
   traefik:
-    image: "traefik:v2.6"
+    image: "traefik:v2.8"
     container_name: traefik
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.dnschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.myresolver.acme.email=me@chandl.io"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
-      - "8080:8080"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-    restart: unless-stopped
-  jackett:
-    image: ghcr.io/linuxserver/jackett:latest
-    container_name: jackett
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.jackett.rule=Host(`media.lan.chandl.io`) && PathPrefix(`/jackett`)"
+      - "443:443"
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Los_Angeles
-      - AUTO_UPDATE=true #optional
+      - "CF_API_EMAIL=me@chandl.io"
+      - "CF_DNS_API_TOKEN=<redacted>"
     volumes:
-      - /mnt/hdd/config/jackett:/config
-      - /mnt/hdd/downloads/jackett:/downloads
+      - "/opt/letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
     restart: unless-stopped
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:develop
@@ -34,6 +32,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.prowlarr.rule=Host(`media.lan.chandl.io`) && PathPrefix(`/prowlarr`)"
+      - "traefik.http.routers.prowlarr.entrypoints=websecure"
+      - "traefik.http.routers.prowlarr.tls.certresolver=myresolver"
     environment:
       - PUID=1000
       - PGID=1000
@@ -47,6 +47,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.media.rule=Host(`media.lan.chandl.io`)"
+      - "traefik.http.routers.media.entrypoints=websecure"
+      - "traefik.http.routers.media.tls.certresolver=myresolver"
     environment:
       - PUID=1000
       - PGID=1000
@@ -63,6 +65,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.sonarr.rule=Host(`media.lan.chandl.io`) && PathPrefix(`/sonarr`)"
+      - "traefik.http.routers.sonarr.entrypoints=websecure"
+      - "traefik.http.routers.sonarr.tls.certresolver=myresolver"
     environment:
       - PUID=1000
       - PGID=1000
@@ -78,6 +82,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.radarr.rule=Host(`media.lan.chandl.io`) && PathPrefix(`/radarr`)"
+      - "traefik.http.routers.radarr.entrypoints=websecure"
+      - "traefik.http.routers.radarr.tls.certresolver=myresolver"
     environment:
       - PUID=1000
       - PGID=1000
@@ -93,6 +99,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.transmission.rule=Host(`media.lan.chandl.io`) && PathPrefix(`/transmission`)"
+      - "traefik.http.routers.transmission.entrypoints=websecure"
+      - "traefik.http.routers.transmission.tls.certresolver=myresolver"
     environment:
       - PUID=1000
       - PGID=1000

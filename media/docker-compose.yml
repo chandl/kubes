@@ -13,6 +13,21 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     restart: unless-stopped
+  jackett:
+    image: ghcr.io/linuxserver/jackett:latest
+    container_name: jackett
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jackett.rule=Host(`media.lan.chandl.io`) && PathPrefix(`/jackett`)"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+      - AUTO_UPDATE=true #optional
+    volumes:
+      - /mnt/hdd/config/jackett:/config
+      - /mnt/hdd/downloads/jackett:/downloads
+    restart: unless-stopped
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:develop
     container_name: prowlarr
@@ -38,8 +53,8 @@ services:
       - TZ=America/Los_Angeles
     volumes:
       - /mnt/hdd/config/jellyfin:/config
-      - /mnt/hdd/data/tvshows:/data/tvshows
-      - /mnt/hdd/data/movies:/data/movies
+      - /mnt/hdd/library/tv:/data/tvshows
+      - /mnt/hdd/library/movies:/data/movies
       - /dev/vchiq:/dev/vchiq
     restart: unless-stopped
   sonarr:

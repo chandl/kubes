@@ -1,0 +1,88 @@
+---
+version: "2.1"
+services:
+  traefik:
+    image: "traefik:v2.6"
+    container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    restart: unless-stopped
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:develop
+    container_name: prowlarr
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prowlarr.rule=Host(`media.lan.chandl.io`) && PathPrefix(`/prowlarr`)"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+    volumes:
+      - /mnt/hdd/config/prowlarr:/config
+    restart: unless-stopped
+  jellyfin:
+    image: ghcr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.media.rule=Host(`media.lan.chandl.io`)"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+    volumes:
+      - /mnt/hdd/config/jellyfin:/config
+      - /mnt/hdd/data/tvshows:/data/tvshows
+      - /mnt/hdd/data/movies:/data/movies
+      - /dev/vchiq:/dev/vchiq
+    restart: unless-stopped
+  sonarr:
+    image: ghcr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sonarr.rule=Host(`media.lan.chandl.io`) && PathPrefix(`/sonarr`)"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+    volumes:
+      - /mnt/hdd/config/sonarr:/config
+      - /mnt/hdd/library/tv:/tv #optional
+      - /mnt/hdd/downloads/transmission:/downloads #optional
+    restart: unless-stopped
+  radarr:
+    image: ghcr.io/linuxserver/radarr:latest
+    container_name: radarr
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.radarr.rule=Host(`media.lan.chandl.io`) && PathPrefix(`/radarr`)"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+    volumes:
+      - /mnt/hdd/config/radarr:/config
+      - /mnt/hdd/library/movies:/movies #optional
+      - /mnt/hdd/downloads/transmission:/downloads #optional
+    restart: unless-stopped
+  transmission:
+    image: ghcr.io/linuxserver/transmission:latest
+    container_name: transmission
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.transmission.rule=Host(`media.lan.chandl.io`) && PathPrefix(`/transmission`)"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+    volumes:
+      - /mnt/hdd/config/transmission:/config
+      - /mnt/hdd/downloads/transmission:/downloads
+    restart: unless-stopped

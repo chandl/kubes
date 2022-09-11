@@ -26,6 +26,24 @@ services:
       - "/opt/letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     restart: unless-stopped
+  nextcloud:
+    # copied and pasted config/nginx/site-confs/default from https://pastebin.com/2tgLjVpw
+    image: lscr.io/linuxserver/nextcloud:latest
+    container_name: nextcloud
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nextcloud.rule=Host(`storage.lan.chandl.io`)"
+      - "traefik.http.routers.nextcloud.entrypoints=websecure"
+      - "traefik.http.routers.nextcloud.tls.certresolver=myresolver"
+      - "traefik.http.services.nextcloud.loadBalancer.server.port=80"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+    volumes:
+      - /opt/nextcloud-config:/config
+      - /mnt/hdd/nextcloud:/data
+    restart: unless-stopped
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:develop
     container_name: prowlarr
